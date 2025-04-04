@@ -3,7 +3,7 @@ import numpy as np
 import os
 import yaml
 import logging
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Logging configuration
 logger = logging.getLogger("feature_engineering_logger")
@@ -54,8 +54,8 @@ def read_data(train_path: str, test_path: str):
         logger.exception(f"Unexpected error while reading data: {e}")
         return pd.DataFrame(), pd.DataFrame()
 
-def apply_bow(train_data, test_data, max_features):
-    """Applies Bag of Words (BoW) transformation using CountVectorizer."""
+def apply_tfidf(train_data, test_data, max_features):
+    """Applies TfidfVectorizer transformation using CountVectorizer."""
     try:
         if train_data.empty or test_data.empty:
             raise ValueError("One or both datasets are empty. Cannot apply BoW.")
@@ -69,31 +69,31 @@ def apply_bow(train_data, test_data, max_features):
         X_test = test_data['content'].values
         y_test = test_data['sentiment'].values
 
-        vectorizer = CountVectorizer(max_features=max_features)
-        X_train_bow = vectorizer.fit_transform(X_train)
-        X_test_bow = vectorizer.transform(X_test)
+        vectorizer = TfidfVectorizer(max_features=max_features)
+        X_train_tfidf = vectorizer.fit_transform(X_train)
+        X_test_tfidf = vectorizer.transform(X_test)
         
-        train_df = pd.DataFrame(X_train_bow.toarray())
+        train_df = pd.DataFrame(X_train_tfidf.toarray())
         train_df['label'] = y_train
         
-        test_df = pd.DataFrame(X_test_bow.toarray())
+        test_df = pd.DataFrame(X_test_tfidf.toarray())
         test_df['label'] = y_test
         
-        logger.info("BoW transformation applied successfully.")
+        logger.info("TfidfVectorizer applied successfully.")
         return train_df, test_df
     except KeyError:
         logger.error("Required columns 'content' or 'sentiment' not found in dataset.")
         return pd.DataFrame(), pd.DataFrame()
     except Exception as e:
-        logger.exception(f"Unexpected error during BoW transformation: {e}")
+        logger.exception(f"Unexpected error during TfidfVectorizer transformation: {e}")
         return pd.DataFrame(), pd.DataFrame()
 
 def save_data(data_path: str, train_df: pd.DataFrame, test_df: pd.DataFrame):
     """Saves transformed train and test data to CSV files."""
     try:
         os.makedirs(data_path, exist_ok=True)
-        train_df.to_csv(os.path.join(data_path, "train_bow.csv"), index=False)
-        test_df.to_csv(os.path.join(data_path, "test_bow.csv"), index=False)
+        train_df.to_csv(os.path.join(data_path, "train_tfidf.csv"), index=False)
+        test_df.to_csv(os.path.join(data_path, "test_tfidf.csv"), index=False)
         logger.info(f"Feature-engineered data saved successfully in {data_path}")
     except Exception as e:
         logger.exception(f"Error while saving data: {e}")
@@ -107,7 +107,7 @@ def main():
         logger.error("Processed train or test data is empty. Exiting.")
         return
     
-    train_df, test_df = apply_bow(train_data, test_data, max_features)
+    train_df, test_df = apply_tfidf(train_data, test_data, max_features)
     if train_df.empty or test_df.empty:
         logger.error("BoW transformation failed. Exiting.")
         return

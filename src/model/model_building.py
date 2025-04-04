@@ -80,7 +80,7 @@ def save_model(model: GradientBoostingClassifier, model_dir: str) -> None:
 def main():
     """Main execution function."""
     params = load_params('params.yaml')
-    X_train, y_train = load_data('./data/processed/train_bow.csv')
+    X_train, y_train = load_data('./data/processed/train_tfidf.csv')
     model = train_model(X_train, y_train, params)
     save_model(model, 'models')  # Save inside 'models/' directory
 
